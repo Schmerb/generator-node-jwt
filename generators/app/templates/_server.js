@@ -1,31 +1,23 @@
-"use strict";
+import express from "express";
+import bodyParser from "body-parser";
+import mongoose from "mongoose";
+import morgan from "morgan";
+import passport from "passport";
+import cors from "cors";
+import busboyBodyParser from "busboy-body-parser";
 
-require("dotenv").config();
-const bodyParser = require("body-parser");
-const express = require("express");
-const mongoose = require("mongoose");
-const morgan = require("morgan");
-const passport = require("passport");
-const cors = require("cors");
-const busboyBodyParser = require("busboy-body-parser");
+import { basicStrategy, jwtStrategy } from "auth/strategies";
+import { PORT, DATABASE_URL, TEST_DATABASE_URL, CLIENT_ORIGIN } from "config";
+
+const isProduction = process.env.NODE_ENV === "production";
 
 // CONFIG
 mongoose.Promise = global.Promise;
 
-const isProduction = process.env.NODE_ENV === "production";
-
-const { basicStrategy, jwtStrategy } = require("auth/strategies");
-const {
-  PORT,
-  DATABASE_URL,
-  TEST_DATABASE_URL,
-  CLIENT_ORIGIN
-} = require("config");
-
 // EXPRESS INSTANCE
 const app = express();
 
-// CRON jobs
+// CRON jobs -- tasks to be run server wide in a sequence (y,m,d,h,m,s etc...)
 // require("services/cron-jobs");
 
 // SOCKET.IO

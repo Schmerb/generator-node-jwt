@@ -1,10 +1,8 @@
-"use strict";
+import express from "express";
+import passport from "passport";
+import jwt from "jsonwebtoken";
 
-const express = require("express");
-const passport = require("passport");
-const jwt = require("jsonwebtoken");
-
-const config = require("config");
+import config from "config";
 
 const createAuthToken = user => {
   return jwt.sign({ user }, config.JWT_SECRET, {
@@ -14,7 +12,7 @@ const createAuthToken = user => {
   });
 };
 
-const router = express.Router();
+export const router = express.Router();
 
 router.post(
   "/login",
@@ -38,4 +36,4 @@ router.post(
   }
 );
 
-module.exports = { router };
+export default router;

@@ -1,9 +1,8 @@
-"use strict";
-
 let auth;
-exports.init = passport => {
+
+export const init = passport => {
   auth = passport.authenticate("jwt", { session: false });
   // console.log('insider service', auth);
 };
 
-exports.authenticate = () => auth;
+export const authenticate = () => auth;

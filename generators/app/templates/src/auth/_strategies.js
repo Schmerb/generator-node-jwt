@@ -1,13 +1,10 @@
-"use strict";
+import { BasicStrategy } from "passport-http";
+import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
 
-const passport = require("passport");
-const { BasicStrategy } = require("passport-http");
-const { Strategy: JwtStrategy, ExtractJwt } = require("passport-jwt");
+import { User } from "models/users";
+import { JWT_SECRET } from "config";
 
-const { User } = require("models/users");
-const { JWT_SECRET } = require("config");
-
-const basicStrategy = new BasicStrategy((username, password, fn) => {
+export const basicStrategy = new BasicStrategy((username, password, fn) => {
   let user;
   User.findOne({ username: username })
     .then(_user => {
@@ -39,7 +36,7 @@ const basicStrategy = new BasicStrategy((username, password, fn) => {
     });
 });
 
-const jwtStrategy = new JwtStrategy(
+export const jwtStrategy = new JwtStrategy(
   {
     secretOrKey: JWT_SECRET,
     // Look for the JWT as a Bearer auth header
@@ -52,4 +49,7 @@ const jwtStrategy = new JwtStrategy(
   }
 );
 
-module.exports = { basicStrategy, jwtStrategy };
+export default {
+  basicStrategy,
+  jwtStrategy
+};

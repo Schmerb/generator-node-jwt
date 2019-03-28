@@ -1,11 +1,9 @@
-"use strict";
-
-const { User } = require("models/users");
+import { User } from "models/users";
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // Adds a user to the database
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-exports.createUser = (req, res) => {
+export const createUser = (req, res) => {
   const requiredFields = ["email", "username", "password"];
   const missingField = requiredFields.find(field => !(field in req.body));
 
@@ -149,7 +147,7 @@ exports.createUser = (req, res) => {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // Returns all of user's data
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-exports.getUser = (req, res) => {
+export const getUser = (req, res) => {
   return User.findById(req.user.id)
     .then(user => res.json(user.apiRepr()))
     .catch(err => res.status(500).json({ message: "Internal server error" }));
@@ -161,7 +159,7 @@ exports.getUser = (req, res) => {
 // if we're creating users. keep in mind, you can also
 // verify this in the Mongo shell.
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-exports.getAllUsers = (req, res) => {
+export const getAllUsers = (req, res) => {
   return User.find()
     .then(users => res.json(users.map(user => user.apiRepr())))
     .catch(err => res.status(500).json({ message: "Internal server error" }));
@@ -170,7 +168,7 @@ exports.getAllUsers = (req, res) => {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // Updates user docuement -- NOT IN USE
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-exports.updateUser = (req, res) => {
+export const updateUser = (req, res) => {
   const requiredFields = ["email", "phoneNumber"];
   const missingField = requiredFields.find(field => !(field in req.body));
 
@@ -241,9 +239,17 @@ exports.updateUser = (req, res) => {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // Deletes user's account from db
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-exports.deleteAccount = (req, res) => {
+export const deleteAccount = (req, res) => {
   return User.findByIdAndRemove(req.user.id)
     .exec()
     .then(() => res.status(204).end())
     .catch(err => res.status(500).json({ message: "Internal server error" }));
+};
+
+export default {
+  createUser,
+  getUser,
+  getAllUsers,
+  updateUser,
+  deleteAccount
 };

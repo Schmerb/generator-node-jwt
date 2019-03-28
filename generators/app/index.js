@@ -15,9 +15,14 @@ module.exports = class extends Generator {
     this.argument("appname", { type: String, required: false });
   }
 
-  initializing() {}
+  // 1)
+  initializing() {
+    this.log(`${chalk.red("initializing!")}`);
+  }
 
+  // 2)
   async prompting() {
+    this.log(`${chalk.blue("prompting!")}`);
     // Have Yeoman greet the user.
     this.log(
       yosay(
@@ -25,12 +30,43 @@ module.exports = class extends Generator {
       )
     );
 
-    const answers = await this.prompt([
+    this.answers = await this.prompt([
       {
         type: "input",
         name: "name",
         message: "Your project name",
-        default: this.options.appname // Default to current folder name
+        default: this.options.appname // Defaults to optional argument
+      },
+      {
+        type: "input",
+        name: "port",
+        message: `Port server will run on`,
+        default: "8080"
+      },
+      {
+        type: "input",
+        name: "databaseURI",
+        message:
+          "Your project's PRODUCTION MongoDB instance URI (If you have one)",
+        default: "mongodb://localhost/CREATE-ME-db"
+      },
+      {
+        type: "input",
+        name: "testDatabaseURI",
+        message: "Your project's TEST MongoDB instance URI (If you have one)",
+        default: "mongodb://localhost/test-db"
+      },
+      {
+        type: "input",
+        name: "jwtSecret",
+        message: 'Provide string to use as JWT "secret"',
+        default: "secret"
+      },
+      {
+        type: "input",
+        name: "jwtExpiray",
+        message: `Provide a valid JWT expiration duration`,
+        default: "7d"
       },
       {
         type: "confirm",
@@ -38,15 +74,18 @@ module.exports = class extends Generator {
         message: "Would you like to enable the Cool feature?"
       }
     ]);
-
-    this.log("app name: ", answers.name);
-    this.log("cool feature: ", answers.cool);
+    this.log("app name: ", this.answers.name);
+    this.log("cool feature: ", this.answers.cool);
   }
 
-  configuring() {}
+  // 3)
+  configuring() {
+    this.log(`${chalk.yellow("configuring!")}`);
+  }
 
   // // // // // // // // // // // // // // //
   // Default -- cusom methods run here
+  // 4)
   method1() {
     this.log("method 1 just ran");
   }
@@ -57,18 +96,123 @@ module.exports = class extends Generator {
   //
   // // // // // // // // // // // // // // //
 
+  // 5)
   writing() {
+    this.log(`${chalk.green("writing!")}`);
+
+    this.fs.copyTpl(
+      this.templatePath("_package.json"),
+      this.destinationPath("package.json"),
+      {
+        name: this.answers.name
+      }
+    );
+
     this.fs.copy(
-      this.templatePath("dummyfile.txt"),
-      this.destinationPath("dummyfile.txt")
+      this.templatePath("_.babelrc"),
+      this.destinationPath(".babelrc")
+    );
+    this.fs.copy(
+      this.templatePath("_.gitignore"),
+      this.destinationPath(".gitignore")
+    );
+    this.fs.copy(
+      this.templatePath("_README.md"),
+      this.destinationPath("README.md")
+    );
+    this.fs.copyTpl(this.templatePath("_.env"), this.destinationPath(".env"), {
+      databaseURI: this.answers.databaseURI,
+      testDatabaseURI: this.answers.testDatabaseURI,
+      port: this.answers.port,
+      jwtSecret: this.answers.jwtSecret,
+      jwtExpiray: this.answers.jwtExpiray
+    });
+
+    // Server.js
+    this.fs.copy(
+      this.templatePath("_server.js"),
+      this.destinationPath("server.js")
+    );
+
+    // Auth
+    this.fs.copy(
+      this.templatePath("src/auth/_strategies.js"),
+      this.destinationPath("src/auth/strategies.js")
+    );
+    this.fs.copy(
+      this.templatePath("src/auth/_router.js"),
+      this.destinationPath("src/auth/router.js")
+    );
+
+    // Config
+    this.fs.copy(
+      this.templatePath("src/config/_index.js"),
+      this.destinationPath("src/config/index.js")
+    );
+
+    // Controllers
+    this.fs.copy(
+      this.templatePath("src/controllers/_usersController.js"),
+      this.destinationPath("src/controllers/usersController.js")
+    );
+
+    // Models
+    this.fs.copy(
+      this.templatePath("src/models/_users.js"),
+      this.destinationPath("src/models/users.js")
+    );
+
+    // Routes
+    this.fs.copy(
+      this.templatePath("src/routes/_index.js"),
+      this.destinationPath("src/routes/index.js")
+    );
+    this.fs.copy(
+      this.templatePath("src/routes/_usersRouter.js"),
+      this.destinationPath("src/routes/usersRouter.js")
+    );
+
+    // Services
+    this.fs.copy(
+      this.templatePath("src/services/_authenticate.js"),
+      this.destinationPath("src/services/authenticate.js")
     );
   }
 
-  conflicts() {}
-
-  install() {
-    this.installDependencies();
+  // 6)
+  conflicts() {
+    this.log(`${chalk.red("Checking for confilcts!")}`);
   }
 
-  end() {}
+  // 7)
+  install() {
+    this.log(`${chalk.green("install!")}`);
+    // Install via package.json file --> this.installDependencies();
+    this.npmInstall(["gulp", "nodemon"], { "save-dev": true });
+    this.npmInstall(
+      [
+        "bcryptjs",
+        "body-parser",
+        "busboy-body-parser",
+        "cors",
+        "dotenv",
+        "express",
+        "express-jwt",
+        "mongoose",
+        "morgan",
+        "passport",
+        "passport-http",
+        "passport-jwt"
+      ],
+      {
+        "save-dev": false
+      }
+    );
+  }
+
+  // 8)
+  end() {
+    this.log(`${chalk.green("end!")}`);
+    this.spawnCommand("npm", ["start"]);
+  }
 };
