@@ -188,7 +188,13 @@ module.exports = class extends Generator {
   install() {
     this.log(`${chalk.green("install!")}`);
     // Install via package.json file --> this.installDependencies();
-    this.npmInstall(["gulp", "nodemon"], { "save-dev": true });
+    this.npmInstall(
+      ["gulp", "nodemon", "@babel/core", "@babel/node", "@babel/preset-env"],
+      {
+        "save-dev": true
+      }
+    );
+
     this.npmInstall(
       [
         "bcryptjs",
@@ -212,7 +218,12 @@ module.exports = class extends Generator {
 
   // 8)
   end() {
-    this.log(`${chalk.green("end!")}`);
+    this.log(yosay(`${chalk.green("ALL DONE SON!")}`));
+    this.log(
+      `${chalk.green(`Starting ${this.answers.name}..`)}${chalk.blue(
+        ".."
+      )}${chalk.red("..")}${chalk.yellow("..")}${chalk.green("..")}`
+    );
     this.spawnCommand("npm", ["start"]);
   }
 };
