@@ -134,49 +134,8 @@ module.exports = class extends Generator {
       this.destinationPath("server.js")
     );
 
-    // Auth
-    this.fs.copy(
-      this.templatePath("src/auth/_strategies.js"),
-      this.destinationPath("src/auth/strategies.js")
-    );
-    this.fs.copy(
-      this.templatePath("src/auth/_router.js"),
-      this.destinationPath("src/auth/router.js")
-    );
-
-    // Config
-    this.fs.copy(
-      this.templatePath("src/config/_index.js"),
-      this.destinationPath("src/config/index.js")
-    );
-
-    // Controllers
-    this.fs.copy(
-      this.templatePath("src/controllers/_usersController.js"),
-      this.destinationPath("src/controllers/usersController.js")
-    );
-
-    // Models
-    this.fs.copy(
-      this.templatePath("src/models/_users.js"),
-      this.destinationPath("src/models/users.js")
-    );
-
-    // Routes
-    this.fs.copy(
-      this.templatePath("src/routes/_index.js"),
-      this.destinationPath("src/routes/index.js")
-    );
-    this.fs.copy(
-      this.templatePath("src/routes/_usersRouter.js"),
-      this.destinationPath("src/routes/usersRouter.js")
-    );
-
-    // Services
-    this.fs.copy(
-      this.templatePath("src/services/_authenticate.js"),
-      this.destinationPath("src/services/authenticate.js")
-    );
+    // Write entire /src directory
+    this.fs.copy(this.templatePath("src"), this.destinationPath("src"));
   }
 
   // 6)

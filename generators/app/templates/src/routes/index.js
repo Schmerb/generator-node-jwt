@@ -6,12 +6,6 @@ const authenticate = require("services/authenticate").authenticate();
 export const routes = app => {
   app.use("/api/auth/", authRouter);
   app.use(["/api/users/", "/api/users/me"], usersRouter);
-  // app.use("/api/events/", authenticate, eventsRouter);
-  // app.use(
-  //   ["/api/currencies/", "/api/currencies/:id"],
-  //   authenticate,
-  //   currencyRouter
-  // );
   app.get("/", (req, res) => {
     res.send("YOOO");
   });

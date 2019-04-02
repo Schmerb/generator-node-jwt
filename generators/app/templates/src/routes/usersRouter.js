@@ -16,7 +16,8 @@ router
 router
   .route("/me")
   .all(authenticate)
-  .get(usersController.getUser) // gets currenct user from JWT
-  .delete(usersController.deleteAccount); // removes user's account
+  .get(usersController.getUser) // gets current user from JWT
+  .delete(usersController.deleteAccount) // removes user's account
+  .put(usersController.updateUser); // updates user's account
 
 export default router;

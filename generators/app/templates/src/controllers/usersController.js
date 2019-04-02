@@ -166,31 +166,30 @@ export const getAllUsers = (req, res) => {
 };
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// Updates user docuement -- NOT IN USE
+// Updates user document -- NOT IN USE
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-export const updateUser = (req, res) => {
-  const requiredFields = ["email", "phoneNumber"];
-  const missingField = requiredFields.find(field => !(field in req.body));
+export const updateUser = async (req, res) => {
+  const updatableFields = [
+    "email",
+    "firstName",
+    "lastName",
+    "username",
+    "phoneNumber",
+    "password",
+    "newPassword"
+  ];
 
-  if (missingField) {
-    return res.status(422).json({
-      code: 422,
-      reason: "ValidationError",
-      message: "Missing field",
-      location: missingField
-    });
-  }
+  const updatedUser = updatableFields
+    .filter(field => field in req.body)
+    .reduce((acc, field) => ({ ...acc, [field]: req.body[field] }), {});
 
-  let { email, phoneNumber } = req.body;
-  email = email.trim();
-  phoneNumber = phoneNumber.trim();
-  const updated = { email, phoneNumber };
-  return User.find({ email })
-    .exec()
-    .then(users => {
-      let count = users.length;
+  // validate new email/phone
+  if ("email" in updatedUser) {
+    try {
+      const users = await User.find({ email: updatedUser.email }).exec();
+      const count = users.length;
       if (count > 0) {
-        let userId = users[0]._id.toString();
+        const userId = users[0]._id.toString();
         if (!userId.includes(req.user.id)) {
           return Promise.reject({
             code: 422,
@@ -201,12 +200,17 @@ export const updateUser = (req, res) => {
           });
         }
       }
-      return User.find({ phoneNumber }).exec();
-    })
-    .then(users => {
-      let count = users.length;
+    } catch (err) {
+      console.log({ err });
+    }
+  }
+
+  if ("phoneNumber" in updatedUser) {
+    try {
+      const users = await User.find({ phoneNumber }).exec();
+      const count = users.length;
       if (count > 0) {
-        let userId = users[0]._id.toString();
+        const userId = users[0]._id.toString();
         if (!userId.includes(req.user.id)) {
           return Promise.reject({
             code: 422,
@@ -217,13 +221,59 @@ export const updateUser = (req, res) => {
           });
         }
       }
-      return User.findByIdAndUpdate(
-        req.user.id,
-        { $set: updated },
-        { new: true }
-      ).exec();
-    })
-    .then(updatedUser => res.status(201).json(updatedUser.apiRepr()))
+    } catch (err) {
+      console.log({ err });
+    }
+  }
+
+  if ("password" in updatedUser) {
+    const sizedFields = {
+      // username: {
+      //   min: 1
+      // },
+      password: {
+        min: 10,
+        // bcrypt truncates after 72 characters, so let's not give the illusion
+        // of security by storing extra (unused) info
+        max: 72
+      }
+    };
+    const tooSmallField = Object.keys(sizedFields).find(
+      field =>
+        "min" in sizedFields[field] &&
+        typeof req.body[field] !== "undefined" &&
+        req.body[field].trim().length < sizedFields[field].min
+    );
+    const tooLargeField = Object.keys(sizedFields).find(
+      field =>
+        "max" in sizedFields[field] &&
+        typeof req.body[field] !== "undefined" &&
+        req.body[field].trim().length > sizedFields[field].max
+    );
+
+    if (tooSmallField || tooLargeField) {
+      return res.status(422).json({
+        code: 422,
+        reason: "ValidationError",
+        message: tooSmallField
+          ? `Must be at least ${sizedFields[tooSmallField].min} characters long`
+          : `Must be at most ${sizedFields[tooLargeField].max} characters long`,
+        location: tooSmallField || tooLargeField
+      });
+    }
+    const { password } = req.body;
+    try {
+      const hash = await User.hashPassword(password);
+      updatedUser.password = hash;
+      console.log({ hash });
+    } catch (err) {
+      console.log({ err });
+    }
+  }
+
+  User.findByIdAndUpdate(req.user.id, { $set: updatedUser }, { new: true })
+    .exec()
+    .then(_updatedUser => res.status(201).json(_updatedUser.apiRepr()))
     .catch(err => {
       // Forward validation errors on to the client, otherwise give a 500
       // error because something unexpected has happened

@@ -5,8 +5,11 @@ import { User } from "models/users";
 import { JWT_SECRET } from "config";
 
 export const basicStrategy = new BasicStrategy((username, password, fn) => {
+  // Check which field user is singing in with
+  const isEmail = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(username);
+  const identifierField = isEmail ? "email" : "username";
   let user;
-  User.findOne({ username: username })
+  User.findOne({ [identifierField]: username })
     .then(_user => {
       user = _user;
       if (!user) {
@@ -14,7 +17,7 @@ export const basicStrategy = new BasicStrategy((username, password, fn) => {
         // Any errors like this will be handled in the catch block.
         return Promise.reject({
           reason: "LoginError",
-          message: "Incorrect username or password"
+          message: `Incorrect ${identifierField} or password`
         });
       }
       return user.validatePassword(password);
@@ -23,7 +26,7 @@ export const basicStrategy = new BasicStrategy((username, password, fn) => {
       if (!isValid) {
         return Promise.reject({
           reason: "LoginError",
-          message: "Incorrect username or password"
+          message: `Incorrect ${identifierField} or password`
         });
       }
       return fn(null, user);
